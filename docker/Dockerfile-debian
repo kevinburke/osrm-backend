@@ -35,8 +35,8 @@ RUN NPROC=${BUILD_CONCURRENCY:-$(nproc)} && \
     case ${DOCKER_TAG} in *"-debug"*) BUILD_TYPE="Debug";; esac && \
     case ${DOCKER_TAG} in *"-assertions"*) BUILD_TYPE="RelWithDebInfo" && ENABLE_ASSERTIONS="On";; esac && \
     echo "Building ${BUILD_TYPE} with ENABLE_ASSERTIONS=${ENABLE_ASSERTIONS}" && \
-    cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DENABLE_ASSERTIONS=${ENABLE_ASSERTIONS} -DENABLE_LTO=On && \
-    make -j${NPROC} install && \
+    cmake .. -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DENABLE_ASSERTIONS=${ENABLE_ASSERTIONS} -DENABLE_LTO=Off && \
+    make -j$([ ${NPROC} -gt 2 ] && echo 2 || echo ${NPROC}) install && \
     cd ../profiles && \
     cp -r * /opt && \
     strip /usr/local/bin/* && \
