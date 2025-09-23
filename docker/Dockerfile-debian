@@ -50,6 +50,8 @@ ARG TARGETARCH
 RUN --mount=type=cache,target=/root/.cache/vcpkg/archives,sharing=locked \
     --mount=type=cache,target=/vcpkg/downloads,sharing=locked \
     --mount=type=cache,target=/vcpkg/buildtrees,sharing=locked \
+    NPROC=${BUILD_CONCURRENCY:-$(nproc)} && \
+    export VCPKG_MAX_CONCURRENCY=$([ ${NPROC} -gt 2 ] && echo 2 || echo ${NPROC}) && \
     export VCPKG_DEFAULT_BINARY_CACHE=/root/.cache/vcpkg/archives && \
     mkdir -p build/vcpkg_installed "$VCPKG_DEFAULT_BINARY_CACHE" && \
     case "${TARGETARCH}" in \
@@ -89,10 +91,10 @@ RUN --mount=type=cache,target=/root/.ccache \
         -DCMAKE_TOOLCHAIN_FILE=${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake \
         -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
         -DENABLE_ASSERTIONS=${ENABLE_ASSERTIONS} \
-        -DENABLE_LTO=On \
+        -DENABLE_LTO=Off \
         -DCMAKE_C_COMPILER_LAUNCHER=ccache \
         -DCMAKE_CXX_COMPILER_LAUNCHER=ccache && \
-    ninja -j${NPROC} install && \
+    ninja -j$([ ${NPROC} -gt 2 ] && echo 2 || echo ${NPROC}) install && \
     ccache -s && \
     # Copy the TBB shared lib out of vcpkg so the runstage image can load it
     # without bringing in the whole vcpkg tree. Boost, expat, bzip2, lua, etc.
