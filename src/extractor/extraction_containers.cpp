@@ -704,7 +704,9 @@ void ExtractionContainers::PrepareEdges(ScriptingEnvironment &scripting_environm
                                       distance,
                                       weight,
                                       duration,
-                                      edge_iterator->result.flags);
+                                      edge_iterator->result.flags,
+                                      edge_iterator->result.osm_source_id,
+                                      edge_iterator->result.osm_target_id);
             scripting_environment.ProcessSegment(segment);
 
             auto &edge = edge_iterator->result;
@@ -714,11 +716,11 @@ void ExtractionContainers::PrepareEdges(ScriptingEnvironment &scripting_environm
                 {1}, to_alias<EdgeDuration>(std::round(segment.duration * 10.)));
             edge.distance = to_alias<EdgeDistance>(accurate_distance);
 
-            // assign new node id
-            const auto node_id = mapExternalToInternalNodeID(
+            // assign new target node id
+            const auto target_node_id = mapExternalToInternalNodeID(
                 used_node_id_list.begin(), used_node_id_list.end(), node_iterator->node_id);
-            BOOST_ASSERT(node_id != SPECIAL_NODEID);
-            edge.target = node_id;
+            BOOST_ASSERT(target_node_id != SPECIAL_NODEID);
+            edge.target = target_node_id;
 
             // orient edges consistently: source id < target id
             // important for multi-edge removal
