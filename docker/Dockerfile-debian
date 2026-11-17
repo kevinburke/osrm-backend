@@ -72,6 +72,7 @@ RUN --mount=type=cache,target=/root/.cache/vcpkg/archives,sharing=locked \
 # invalidated by code changes — everything above stays cached.
 COPY . /src
 
+ARG OSRM_GITSHA
 RUN --mount=type=cache,target=/root/.ccache \
     NPROC=${BUILD_CONCURRENCY:-$(nproc)} && \
     export CXXFLAGS="-Wno-array-bounds -Wno-uninitialized -Wno-stringop-overflow" && \
@@ -79,7 +80,9 @@ RUN --mount=type=cache,target=/root/.ccache \
     export CCACHE_MAXSIZE=2G && \
     export CCACHE_COMPRESSLEVEL=6 && \
     echo "Building OSRM ${DOCKER_TAG}" && \
-    git show --format="%H" | head -n1 > /opt/OSRM_GITSHA && \
+    if [ -n "${OSRM_GITSHA}" ]; then printf '%s\n' "${OSRM_GITSHA}" > /opt/OSRM_GITSHA; \
+    else git rev-parse HEAD > /opt/OSRM_GITSHA; fi && \
+    test -s /opt/OSRM_GITSHA && \
     echo "Building OSRM gitsha $(cat /opt/OSRM_GITSHA)" && \
     cd build && \
     BUILD_TYPE="Release" && \
